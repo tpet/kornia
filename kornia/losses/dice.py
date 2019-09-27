@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import division
+from __future__ import absolute_import
 from typing import Optional
 
 import torch
@@ -11,7 +14,7 @@ from kornia.utils import one_hot
 # https://github.com/kevinzakka/pytorch-goodies/blob/master/losses.py
 
 class DiceLoss(nn.Module):
-    r"""Criterion that computes Sørensen-Dice Coefficient loss.
+    ur"""Criterion that computes Sørensen-Dice Coefficient loss.
 
     According to [1], we compute the Sørensen-Dice Coefficient as follows:
 
@@ -45,14 +48,14 @@ class DiceLoss(nn.Module):
         >>> output.backward()
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         super(DiceLoss, self).__init__()
-        self.eps: float = 1e-6
+        self.eps = 1e-6
 
     def forward(  # type: ignore
             self,
-            input: torch.Tensor,
-            target: torch.Tensor) -> torch.Tensor:
+            input,
+            target):
         if not torch.is_tensor(input):
             raise TypeError("Input type is not a torch.Tensor. Got {}"
                             .format(type(input)))
@@ -88,8 +91,8 @@ class DiceLoss(nn.Module):
 
 
 def dice_loss(
-        input: torch.Tensor,
-        target: torch.Tensor) -> torch.Tensor:
+        input,
+        target):
     r"""Function that computes Sørensen-Dice Coefficient loss.
 
     See :class:`~kornia.losses.DiceLoss` for details.

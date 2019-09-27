@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from .gaussian import GaussianBlur2d, gaussian_blur2d
 from .laplacian import Laplacian, laplacian
 from .sobel import SpatialGradient, spatial_gradient

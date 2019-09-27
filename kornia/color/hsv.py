@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 import torch
 import torch.nn as nn
 
@@ -18,10 +20,10 @@ class HsvToRgb(nn.Module):
 
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         super(HsvToRgb, self).__init__()
 
-    def forward(self, image: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, image):  # type: ignore
         return hsv_to_rgb(image)
 
 
@@ -45,24 +47,24 @@ def hsv_to_rgb(image):
         raise ValueError("Input size must have a shape of (*, 3, H, W). Got {}"
                          .format(image.shape))
 
-    h: torch.Tensor = image[..., 0, :, :]
-    s: torch.Tensor = image[..., 1, :, :]
-    v: torch.Tensor = image[..., 2, :, :]
+    h = image[..., 0, :, :]
+    s = image[..., 1, :, :]
+    v = image[..., 2, :, :]
 
-    hi: torch.Tensor = torch.floor(h * 6)
-    f: torch.Tensor = h * 6 - hi
-    p: torch.Tensor = v * (1 - s)
-    q: torch.Tensor = v * (1 - f * s)
-    t: torch.Tensor = v * (1 - (1 - f) * s)
+    hi = torch.floor(h * 6)
+    f = h * 6 - hi
+    p = v * (1 - s)
+    q = v * (1 - f * s)
+    t = v * (1 - (1 - f) * s)
 
-    out: torch.Tensor = torch.stack([hi, hi, hi], dim=-3) % 6
+    out = torch.stack([hi, hi, hi], dim=-3) % 6
 
-    out[out == 0]: torch.Tensor = torch.stack((v, t, p), dim=-3)[out == 0]
-    out[out == 1]: torch.Tensor = torch.stack((q, v, p), dim=-3)[out == 1]
-    out[out == 2]: torch.Tensor = torch.stack((p, v, t), dim=-3)[out == 2]
-    out[out == 3]: torch.Tensor = torch.stack((p, q, v), dim=-3)[out == 3]
-    out[out == 4]: torch.Tensor = torch.stack((t, p, v), dim=-3)[out == 4]
-    out[out == 5]: torch.Tensor = torch.stack((v, p, q), dim=-3)[out == 5]
+    out[out == 0] = torch.stack((v, t, p), dim=-3)[out == 0]
+    out[out == 1] = torch.stack((q, v, p), dim=-3)[out == 1]
+    out[out == 2] = torch.stack((p, v, t), dim=-3)[out == 2]
+    out[out == 3] = torch.stack((p, q, v), dim=-3)[out == 3]
+    out[out == 4] = torch.stack((t, p, v), dim=-3)[out == 4]
+    out[out == 5] = torch.stack((v, p, q), dim=-3)[out == 5]
 
     return out
 
@@ -84,10 +86,10 @@ class RgbToHsv(nn.Module):
 
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         super(RgbToHsv, self).__init__()
 
-    def forward(self, image: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, image):  # type: ignore
         return rgb_to_hsv(image)
 
 
@@ -109,34 +111,34 @@ def rgb_to_hsv(image):
         raise ValueError("Input size must have a shape of (*, 3, H, W). Got {}"
                          .format(image.shape))
 
-    r: torch.Tensor = image[..., 0, :, :]
-    g: torch.Tensor = image[..., 1, :, :]
-    b: torch.Tensor = image[..., 2, :, :]
+    r = image[..., 0, :, :]
+    g = image[..., 1, :, :]
+    b = image[..., 2, :, :]
 
-    maxc: torch.Tensor = image.max(-3)[0]
-    minc: torch.Tensor = image.min(-3)[0]
+    maxc = image.max(-3)[0]
+    minc = image.min(-3)[0]
 
-    v: torch.Tensor = maxc  # brightness
+    v = maxc  # brightness
 
-    deltac: torch.Tensor = maxc - minc
-    s: torch.Tensor = deltac / v  # saturation
+    deltac = maxc - minc
+    s = deltac / v  # saturation
 
     # avoid division by zero
-    deltac: torch.Tensor = torch.where(
+    deltac = torch.where(
         deltac == 0, torch.ones_like(deltac), deltac)
 
-    rc: torch.Tensor = (maxc - r) / deltac
-    gc: torch.Tensor = (maxc - g) / deltac
-    bc: torch.Tensor = (maxc - b) / deltac
+    rc = (maxc - r) / deltac
+    gc = (maxc - g) / deltac
+    bc = (maxc - b) / deltac
 
-    maxg: torch.Tensor = g == maxc
-    maxr: torch.Tensor = r == maxc
+    maxg = g == maxc
+    maxr = r == maxc
 
-    h: torch.Tensor = 4.0 + gc - rc
-    h[maxg]: torch.Tensor = 2.0 + rc[maxg] - bc[maxg]
-    h[maxr]: torch.Tensor = bc[maxr] - gc[maxr]
-    h[minc == maxc]: torch.Tensor = 0.0
+    h = 4.0 + gc - rc
+    h[maxg] = 2.0 + rc[maxg] - bc[maxg]
+    h[maxr] = bc[maxr] - gc[maxr]
+    h[minc == maxc] = 0.0
 
-    h: torch.Tensor = (h / 6.0) % 1.0
+    h = (h / 6.0) % 1.0
 
     return torch.stack([h, s, v], dim=-3)

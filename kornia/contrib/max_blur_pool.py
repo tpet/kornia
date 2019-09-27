@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from typing import Tuple
 
 import torch
@@ -12,7 +13,7 @@ __all__ = [
 ]
 
 
-def _compute_zero_padding(kernel_size: Tuple[int, int]) -> Tuple[int, int]:
+def _compute_zero_padding(kernel_size):
     """Computes zero padding tuple."""
     padding = [(k - 1) // 2 for k in kernel_size]
     return padding[0], padding[1]
@@ -40,12 +41,12 @@ class MaxBlurPool2d(nn.Module):
         >>> output = pool(input)  # 1x4x2x4
     """
 
-    def __init__(self, kernel_size: int) -> None:
+    def __init__(self, kernel_size):
         super(MaxBlurPool2d, self).__init__()
-        self.kernel_size: Tuple[int, int] = (kernel_size, kernel_size)
-        self.padding: Tuple[int, int] = _compute_zero_padding(self.kernel_size)
+        self.kernel_size = (kernel_size, kernel_size)
+        self.padding = _compute_zero_padding(self.kernel_size)
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         if not torch.is_tensor(input):
             raise TypeError("Input input type is not a torch.Tensor. Got {}"
                             .format(type(input)))
@@ -53,12 +54,12 @@ class MaxBlurPool2d(nn.Module):
             raise ValueError("Invalid input shape, we expect BxCxHxW. Got: {}"
                              .format(input.shape))
         # compute local maxima
-        x_max: torch.Tensor = F.max_pool2d(
+        x_max = F.max_pool2d(
             input, kernel_size=self.kernel_size,
             padding=self.padding, stride=1)
 
         # blur and downsample
-        x_down: torch.Tensor = pyrdown(x_max)
+        x_down = pyrdown(x_max)
         return x_down
 
 
@@ -67,7 +68,7 @@ class MaxBlurPool2d(nn.Module):
 ######################
 
 
-def max_blur_pool2d(input: torch.Tensor, kernel_size: int) -> torch.Tensor:
+def max_blur_pool2d(input, kernel_size):
     r"""Creates a module that computes pools and blurs and downsample a given
     feature map.
 

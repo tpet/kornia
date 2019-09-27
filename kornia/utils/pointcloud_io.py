@@ -1,10 +1,13 @@
+from __future__ import with_statement
+from __future__ import absolute_import
 from typing import Optional
 
 import os
 import torch
+from io import open
 
 
-def save_pointcloud_ply(filename: str, pointcloud: torch.Tensor) -> None:
+def save_pointcloud_ply(filename, pointcloud):
     r"""Utility function to save to disk a pointcloud in PLY format.
 
     Args:
@@ -23,18 +26,18 @@ def save_pointcloud_ply(filename: str, pointcloud: torch.Tensor) -> None:
         raise TypeError("Input pointcloud must be in the following shape "
                         "HxWx3. Got {}.".format(pointcloud.shape))
     # flatten the input pointcloud in a vector to iterate points
-    xyz_vec: torch.Tensor = pointcloud.reshape(-1, 3)
+    xyz_vec = pointcloud.reshape(-1, 3)
 
     with open(filename, 'w') as f:
-        data_str: str = ''
-        num_points: int = xyz_vec.shape[0]
-        for idx in range(num_points):
+        data_str = ''
+        num_points = xyz_vec.shape[0]
+        for idx in xrange(num_points):
             xyz = xyz_vec[idx]
             if not bool(torch.isfinite(xyz).any()):
                 continue
-            x: float = xyz[0].item()
-            y: float = xyz[1].item()
-            z: float = xyz[2].item()
+            x = xyz[0].item()
+            y = xyz[1].item()
+            z = xyz[2].item()
             data_str += '{0} {1} {2}\n'.format(x, y, z)
 
         f.write("ply\n")
@@ -49,7 +52,7 @@ def save_pointcloud_ply(filename: str, pointcloud: torch.Tensor) -> None:
 
 
 def load_pointcloud_ply(
-        filename: str, header_size: Optional[int] = 8) -> torch.Tensor:
+        filename, header_size = 8):
     r"""Utility function to load from disk a pointcloud in PLY format.
 
     Args:
@@ -86,5 +89,5 @@ def load_pointcloud_ply(
             ))
 
         # create tensor from list
-        pointcloud: torch.Tensor = torch.tensor(points)
+        pointcloud = torch.tensor(points)
         return pointcloud

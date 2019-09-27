@@ -3,6 +3,8 @@ operations, as described in the paper "Numerical Coordinate Regression with
 Convolutional Neural Networks" by Nibali et al.
 """
 
+from __future__ import division
+from __future__ import absolute_import
 from typing import Any, Tuple
 
 import torch
@@ -22,9 +24,9 @@ def _validate_batched_image_tensor_input(tensor):
 
 
 def spatial_softmax_2d(
-        input: torch.Tensor,
-        temperature: torch.Tensor = torch.tensor(1.0),
-) -> torch.Tensor:
+        input,
+        temperature = torch.tensor(1.0),
+):
     r"""Applies the Softmax function over features in each image channel.
 
     Note that this function behaves differently to `torch.nn.Softmax2d`, which
@@ -44,17 +46,17 @@ def spatial_softmax_2d(
     _validate_batched_image_tensor_input(input)
 
     batch_size, channels, height, width = input.shape
-    x: torch.Tensor = input.view(batch_size, channels, -1)
+    x = input.view(batch_size, channels, -1)
 
-    x_soft: torch.Tensor = F.softmax(x * temperature, dim=-1)
+    x_soft = F.softmax(x * temperature, dim=-1)
 
     return x_soft.view(batch_size, channels, height, width)
 
 
 def spatial_softargmax_2d(
-        input: torch.Tensor,
-        normalized_coordinates: bool = True,
-) -> torch.Tensor:
+        input,
+        normalized_coordinates = True,
+):
     r"""Computes the 2D soft-argmax of a given input heatmap.
 
     The input heatmap is assumed to represent a valid spatial probability
@@ -88,37 +90,37 @@ def spatial_softargmax_2d(
     batch_size, channels, height, width = input.shape
 
     # Create coordinates grid.
-    grid: torch.Tensor = create_meshgrid(
+    grid = create_meshgrid(
         height, width, normalized_coordinates)
     grid = grid.to(device=input.device, dtype=input.dtype)
 
-    pos_x: torch.Tensor = grid[..., 0].reshape(-1)
-    pos_y: torch.Tensor = grid[..., 1].reshape(-1)
+    pos_x = grid[..., 0].reshape(-1)
+    pos_y = grid[..., 1].reshape(-1)
 
-    input_flat: torch.Tensor = input.view(batch_size, channels, -1)
+    input_flat = input.view(batch_size, channels, -1)
 
     # Compute the expectation of the coordinates.
-    expected_y: torch.Tensor = torch.sum(pos_y * input_flat, -1, keepdim=True)
-    expected_x: torch.Tensor = torch.sum(pos_x * input_flat, -1, keepdim=True)
+    expected_y = torch.sum(pos_y * input_flat, -1, keepdim=True)
+    expected_x = torch.sum(pos_x * input_flat, -1, keepdim=True)
 
-    output: torch.Tensor = torch.cat([expected_x, expected_y], -1)
+    output = torch.cat([expected_x, expected_y], -1)
 
     return output.view(batch_size, channels, 2)  # BxNx2
 
 
 def _safe_zero_division(
-        numerator: torch.Tensor,
-        denominator: torch.Tensor,
-) -> torch.Tensor:
-    eps: float = finfo(numerator.dtype).tiny
+        numerator,
+        denominator,
+):
+    eps = finfo(numerator.dtype).tiny
     return numerator / torch.clamp(denominator, min=eps)
 
 
 def render_gaussian_2d(
-        mean: torch.Tensor,
-        std: torch.Tensor,
-        size: Tuple[int, int],
-        normalized_coordinates: bool = True,
+        mean,
+        std,
+        size,
+        normalized_coordinates = True,
 ):
     r"""Renders the PDF of a 2D Gaussian distribution.
 
@@ -138,7 +140,7 @@ def render_gaussian_2d(
         - `std`: :math:`(*, 2)`. Should be able to be broadcast with `mean`.
         - Output: :math:`(*, H, W)`
     """
-    mean_dtype: Any = mean.dtype
+    mean_dtype = mean.dtype
     if not mean_dtype.is_floating_point:
         raise TypeError("Expected `mean` to have floating point values. Got {}"
                         .format(mean.dtype))
@@ -147,10 +149,10 @@ def render_gaussian_2d(
     height, width = size
 
     # Create coordinates grid.
-    grid: torch.Tensor = create_meshgrid(height, width, normalized_coordinates)
+    grid = create_meshgrid(height, width, normalized_coordinates)
     grid = grid.to(device=mean.device, dtype=mean.dtype)
-    pos_x: torch.Tensor = grid[..., 0].view(height, width)
-    pos_y: torch.Tensor = grid[..., 1].view(height, width)
+    pos_x = grid[..., 0].view(height, width)
+    pos_y = grid[..., 1].view(height, width)
 
     # Gaussian PDF = exp(-(x - \mu)^2 / (2 \sigma^2))
     #              = exp(dists * ks),

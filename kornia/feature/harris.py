@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import division
+from __future__ import absolute_import
 from typing import Tuple
 
 import torch
@@ -9,7 +12,7 @@ from kornia.filters import spatial_gradient, gaussian_blur2d
 
 
 class CornerHarris(nn.Module):
-    r"""Computes the Harris corner detection.
+    ur"""Computes the Harris corner detection.
 
     The response map is computed according the following formulation:
 
@@ -59,13 +62,13 @@ class CornerHarris(nn.Module):
                   [0., 0., 0., 0., 0., 0., 0.]]]])
     """
 
-    def __init__(self, k: torch.Tensor) -> None:
+    def __init__(self, k):
         super(CornerHarris, self).__init__()
-        self.k: torch.Tensor = k
+        self.k = k
         # TODO: add as signature parameter
-        self.kernel_size: Tuple[int, int] = (3, 3)
+        self.kernel_size = (3, 3)
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         if not torch.is_tensor(input):
             raise TypeError("Input type is not a torch.Tensor. Got {}"
                             .format(type(input)))
@@ -74,23 +77,23 @@ class CornerHarris(nn.Module):
                              .format(input.shape))
         # compute the first order gradients with sobel operator
         # TODO: implement support for kernel different than three
-        gradients: torch.Tensor = spatial_gradient(input)
-        dx: torch.Tensor = gradients[:, :, 0]
-        dy: torch.Tensor = gradients[:, :, 1]
+        gradients = spatial_gradient(input)
+        dx = gradients[:, :, 0]
+        dy = gradients[:, :, 1]
 
         # compute the structure tensor M elements
         def g(x):
             return gaussian_blur2d(x, (3, 3), (1., 1.))
 
-        dx2: torch.Tensor = g(dx * dx)
-        dy2: torch.Tensor = g(dy * dy)
-        dxy: torch.Tensor = g(dx * dy)
+        dx2 = g(dx * dx)
+        dy2 = g(dy * dy)
+        dxy = g(dx * dy)
 
-        det_m: torch.Tensor = dx2 * dy2 - dxy * dxy
-        trace_m: torch.Tensor = dx2 + dy2
+        det_m = dx2 * dy2 - dxy * dxy
+        trace_m = dx2 + dy2
 
         # compute the response map
-        scores: torch.Tensor = det_m - self.k * trace_m ** 2
+        scores = det_m - self.k * trace_m ** 2
 
         # threshold
         # TODO: add as signature parameter ?
@@ -100,14 +103,14 @@ class CornerHarris(nn.Module):
         scores = non_maxima_suppression2d(scores, kernel_size=(3, 3))
 
         # normalize and return
-        scores_max: torch.Tensor = F.adaptive_max_pool2d(scores, output_size=1)
+        scores_max = F.adaptive_max_pool2d(scores, output_size=1)
         return scores / scores_max
 
 
 # functiona api
 
 
-def corner_harris(input: torch.Tensor, k: torch.Tensor) -> torch.Tensor:
+def corner_harris(input, k):
     r"""Computes the Harris corner detection.
 
     See :class:`~kornia.feature.CornerHarris` for details.

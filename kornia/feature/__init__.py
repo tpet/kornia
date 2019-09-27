@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from kornia.geometry import angle_to_rotation_matrix
 from .harris import CornerHarris, corner_harris
 from .nms import NonMaximaSuppression2d, non_maxima_suppression2d

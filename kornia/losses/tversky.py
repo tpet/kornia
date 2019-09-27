@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import division
+from __future__ import absolute_import
 from typing import Optional
 
 import torch
@@ -11,7 +14,7 @@ from kornia.utils import one_hot
 
 
 class TverskyLoss(nn.Module):
-    r"""Criterion that computes Tversky Coeficient loss.
+    ur"""Criterion that computes Tversky Coeficient loss.
 
     According to [1], we compute the Tversky Coefficient as follows:
 
@@ -48,16 +51,16 @@ class TverskyLoss(nn.Module):
         [1]: https://arxiv.org/abs/1706.05721
     """
 
-    def __init__(self, alpha: float, beta: float) -> None:
+    def __init__(self, alpha, beta):
         super(TverskyLoss, self).__init__()
-        self.alpha: float = alpha
-        self.beta: float = beta
-        self.eps: float = 1e-6
+        self.alpha = alpha
+        self.beta = beta
+        self.eps = 1e-6
 
     def forward(  # type: ignore
             self,
-            input: torch.Tensor,
-            target: torch.Tensor) -> torch.Tensor:
+            input,
+            target):
         if not torch.is_tensor(input):
             raise TypeError("Input type is not a torch.Tensor. Got {}"
                             .format(type(input)))
@@ -96,10 +99,10 @@ class TverskyLoss(nn.Module):
 
 
 def tversky_loss(
-        input: torch.Tensor,
-        target: torch.Tensor,
-        alpha: float,
-        beta: float) -> torch.Tensor:
+        input,
+        target,
+        alpha,
+        beta):
     r"""Function that computes Tversky loss.
 
     See :class:`~kornia.losses.TverskyLoss` for details.

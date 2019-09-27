@@ -1,13 +1,14 @@
+from __future__ import absolute_import
 from typing import Optional
 
 import torch
 
 
-def one_hot(labels: torch.Tensor,
-            num_classes: int,
-            device: Optional[torch.device] = None,
-            dtype: Optional[torch.dtype] = None,
-            eps: Optional[float] = 1e-6) -> torch.Tensor:
+def one_hot(labels,
+            num_classes,
+            device = None,
+            dtype = None,
+            eps = 1e-6):
     r"""Converts an integer label 2D tensor to a one-hot 3D tensor.
 
     Args:

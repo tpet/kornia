@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 from typing import Tuple, List
 
 import math
@@ -18,7 +20,7 @@ __all__ = [
 ]
 
 
-def _get_pyramid_gaussian_kernel() -> torch.Tensor:
+def _get_pyramid_gaussian_kernel():
     """Utility function that return a pre-computed gaussian kernel."""
     return torch.tensor([[
         [1., 4., 6., 4., 1.],
@@ -49,12 +51,12 @@ class PyrDown(nn.Module):
         >>> output = kornia.transform.PyrDown()(input)  # 1x2x2x2
     """
 
-    def __init__(self, border_type: str = 'reflect') -> None:
+    def __init__(self, border_type = 'reflect'):
         super(PyrDown, self).__init__()
-        self.border_type: str = border_type
-        self.kernel: torch.Tensor = _get_pyramid_gaussian_kernel()
+        self.border_type = border_type
+        self.kernel = _get_pyramid_gaussian_kernel()
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         if not torch.is_tensor(input):
             raise TypeError("Input type is not a torch.Tensor. Got {}"
                             .format(type(input)))
@@ -62,10 +64,10 @@ class PyrDown(nn.Module):
             raise ValueError("Invalid input shape, we expect BxCxHxW. Got: {}"
                              .format(input.shape))
         # blur image
-        x_blur: torch.Tensor = filter2D(input, self.kernel, self.border_type)
+        x_blur = filter2D(input, self.kernel, self.border_type)
 
         # reject even rows and columns.
-        out: torch.Tensor = F.avg_pool2d(x_blur, 2, 2)
+        out = F.avg_pool2d(x_blur, 2, 2)
         return out
 
 
@@ -89,12 +91,12 @@ class PyrUp(nn.Module):
         >>> output = kornia.transform.PyrUp()(input)  # 1x2x8x8
     """
 
-    def __init__(self, border_type: str = 'reflect'):
+    def __init__(self, border_type = 'reflect'):
         super(PyrUp, self).__init__()
-        self.border_type: str = border_type
-        self.kernel: torch.Tensor = _get_pyramid_gaussian_kernel()
+        self.border_type = border_type
+        self.kernel = _get_pyramid_gaussian_kernel()
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         if not torch.is_tensor(input):
             raise TypeError("Input type is not a torch.Tensor. Got {}"
                             .format(type(input)))
@@ -103,11 +105,11 @@ class PyrUp(nn.Module):
                              .format(input.shape))
         # upsample tensor
         b, c, height, width = input.shape
-        x_up: torch.Tensor = F.interpolate(input, size=(height * 2, width * 2),
+        x_up = F.interpolate(input, size=(height * 2, width * 2),
                                            mode='bilinear', align_corners=True)
 
         # blurs upsampled tensor
-        x_blur: torch.Tensor = filter2D(x_up, self.kernel, self.border_type)
+        x_blur = filter2D(x_up, self.kernel, self.border_type)
         return x_blur
 
 
@@ -137,9 +139,9 @@ class ScalePyramid(nn.Module):
     """
 
     def __init__(self,
-                 n_levels: int = 3,
-                 init_sigma: float = 1.6,
-                 min_size: int = 5):
+                 n_levels = 3,
+                 init_sigma = 1.6,
+                 min_size = 5):
         super(ScalePyramid, self).__init__()
         self.n_levels = n_levels
         self.init_sigma = init_sigma
@@ -148,14 +150,13 @@ class ScalePyramid(nn.Module):
         self.sigma_step = 2 ** (1. / float(self.n_levels))
         return
 
-    def get_kernel_size(self, sigma: float):
+    def get_kernel_size(self, sigma):
         ksize = int(2.0 * 3.0 * sigma + 1.0)
         if ksize % 2 == 0:
             ksize += 1
         return ksize
 
-    def forward(self, x: torch.Tensor) -> Tuple[  # type: ignore
-            List, List, List]:
+    def forward(self, x):
         bs, ch, h, w = x.size()
         pixel_distance = 1.0
         cur_sigma = 0.5
@@ -175,7 +176,7 @@ class ScalePyramid(nn.Module):
         oct_idx = 0
         while True:
             cur_level = pyr[-1][0].squeeze(1)
-            for level_idx in range(1, self.n_levels):
+            for level_idx in xrange(1, self.n_levels):
                 sigma = cur_sigma * math.sqrt(self.sigma_step**2 - 1.0)
                 cur_level = gaussian_blur2d(
                     cur_level, (ksize, ksize), (sigma, sigma))
@@ -201,7 +202,7 @@ class ScalePyramid(nn.Module):
                     self.n_levels).to(
                     x.device))
             oct_idx += 1
-        for i in range(len(pyr)):
+        for i in xrange(len(pyr)):
             pyr[i] = torch.cat(pyr[i], dim=1)  # type: ignore
         return pyr, sigmas, pixel_dists
 
@@ -210,8 +211,8 @@ class ScalePyramid(nn.Module):
 
 
 def pyrdown(
-        input: torch.Tensor,
-        border_type: str = 'reflect') -> torch.Tensor:
+        input,
+        border_type = 'reflect'):
     r"""Blurs a tensor and downsamples it.
 
     See :class:`~kornia.transform.PyrDown` for details.
@@ -219,7 +220,7 @@ def pyrdown(
     return PyrDown(border_type)(input)
 
 
-def pyrup(input: torch.Tensor, border_type: str = 'reflect') -> torch.Tensor:
+def pyrup(input, border_type = 'reflect'):
     r"""Upsamples a tensor and then blurs it.
 
     See :class:`~kornia.transform.PyrUp` for details.
@@ -228,9 +229,9 @@ def pyrup(input: torch.Tensor, border_type: str = 'reflect') -> torch.Tensor:
 
 
 def build_pyramid(
-        input: torch.Tensor,
-        max_level: int,
-        border_type: str = 'reflect') -> List[torch.Tensor]:
+        input,
+        max_level,
+        border_type = 'reflect'):
     r"""Constructs the Gaussian pyramid for an image.
 
     The function constructs a vector of images and builds the Gaussian pyramid
@@ -248,23 +249,23 @@ def build_pyramid(
         - Output :math:`[(B, NL, C, H, W), (B, NL, C, H/2, W/2), ...]`
     """
     if not isinstance(input, torch.Tensor):
-        raise TypeError(f"Input type is not a torch.Tensor. Got {type(input)}")
+        raise TypeError("Input type is not a torch.Tensor. Got {}".format(type(input)))
 
     if not len(input.shape) == 4:
-        raise ValueError(f"Invalid input shape, we expect BxCxHxW. Got: {input.shape}")
+        raise ValueError("Invalid input shape, we expect BxCxHxW. Got: {}".format(input.shape))
 
     if not isinstance(max_level, int) or max_level < 0:
-        raise ValueError(f"Invalid max_level, it must be a positive integer. Got: {max_level}")
+        raise ValueError("Invalid max_level, it must be a positive integer. Got: {}".format(max_level))
 
     # create empty list and append the original image
-    pyramid: List[torch.Tensor] = []
+    pyramid = []
     pyramid.append(input)
 
     # iterate and downsample
 
-    for _ in range(max_level - 1):
-        img_curr: torch.Tensor = pyramid[-1]
-        img_down: torch.Tensor = pyrdown(img_curr, border_type)
+    for _ in xrange(max_level - 1):
+        img_curr = pyramid[-1]
+        img_down = pyrdown(img_curr, border_type)
         pyramid.append(img_down)
 
     return pyramid

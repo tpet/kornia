@@ -73,8 +73,8 @@ if __name__ == '__main__':
 	description='differentiable computer vision for deep learning',
 	long_description=long_description,
 	license='Apache License 2.0',
-	python_requires='>=3.6',
-	    
+	python_requires='>=2.7,<3',
+
 	# Test
 	setup_requires=['pytest-runner'],
 	tests_require=['pytest'],
@@ -89,7 +89,7 @@ if __name__ == '__main__':
             'Intended Audience :: Education',
             'Intended Audience :: Science/Research',
             'Operating System :: POSIX :: Linux',
-            'Programming Language :: Python :: 3 :: Only',
+            'Programming Language :: Python :: 2 :: Only',
             'License :: OSI Approved :: Apache Software License',
             'Topic :: Scientific/Engineering :: Image Recognition',
             'Topic :: Software Development :: Libraries',

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from typing import Optional
 
 import torch
@@ -16,7 +17,7 @@ __all__ = [
 
 
 def compose_transformations(
-        trans_01: torch.Tensor, trans_12: torch.Tensor) -> torch.Tensor:
+        trans_01, trans_12):
     r"""Functions that composes two homogeneous transformations.
 
     .. math::
@@ -60,17 +61,17 @@ def compose_transformations(
         raise ValueError("Input number of dims must match. Got {} and {}"
                          .format(trans_01.dim(), trans_12.dim()))
     # unpack input data
-    rmat_01: torch.Tensor = trans_01[..., :3, :3]  # Nx3x3
-    rmat_12: torch.Tensor = trans_12[..., :3, :3]  # Nx3x3
-    tvec_01: torch.Tensor = trans_01[..., :3, -1:]  # Nx3x1
-    tvec_12: torch.Tensor = trans_12[..., :3, -1:]  # Nx3x1
+    rmat_01 = trans_01[..., :3, :3]  # Nx3x3
+    rmat_12 = trans_12[..., :3, :3]  # Nx3x3
+    tvec_01 = trans_01[..., :3, -1:]  # Nx3x1
+    tvec_12 = trans_12[..., :3, -1:]  # Nx3x1
 
     # compute the actual transforms composition
-    rmat_02: torch.Tensor = torch.matmul(rmat_01, rmat_12)
-    tvec_02: torch.Tensor = torch.matmul(rmat_01, tvec_12) + tvec_01
+    rmat_02 = torch.matmul(rmat_01, rmat_12)
+    tvec_02 = torch.matmul(rmat_01, tvec_12) + tvec_01
 
     # pack output tensor
-    trans_02: torch.Tensor = torch.zeros_like(trans_01)
+    trans_02 = torch.zeros_like(trans_01)
     trans_02[..., :3, 0:3] += rmat_02
     trans_02[..., :3, -1:] += tvec_02
     trans_02[..., -1, -1:] += 1.0
@@ -109,15 +110,15 @@ def inverse_transformation(trans_12):
         raise ValueError("Input size must be a Nx4x4 or 4x4. Got {}"
                          .format(trans_12.shape))
     # unpack input tensor
-    rmat_12: torch.Tensor = trans_12[..., :3, 0:3]  # Nx3x3
-    tvec_12: torch.Tensor = trans_12[..., :3, 3:4]  # Nx3x1
+    rmat_12 = trans_12[..., :3, 0:3]  # Nx3x3
+    tvec_12 = trans_12[..., :3, 3:4]  # Nx3x1
 
     # compute the actual inverse
-    rmat_21: torch.Tensor = torch.transpose(rmat_12, -1, -2)
-    tvec_21: torch.Tensor = torch.matmul(-rmat_21, tvec_12)
+    rmat_21 = torch.transpose(rmat_12, -1, -2)
+    tvec_21 = torch.matmul(-rmat_21, tvec_12)
 
     # pack to output tensor
-    trans_21: torch.Tensor = torch.zeros_like(trans_12)
+    trans_21 = torch.zeros_like(trans_12)
     trans_21[..., :3, 0:3] += rmat_21
     trans_21[..., :3, -1:] += tvec_21
     trans_21[..., -1, -1:] += 1.0
@@ -125,7 +126,7 @@ def inverse_transformation(trans_12):
 
 
 def relative_transformation(
-        trans_01: torch.Tensor, trans_02: torch.Tensor) -> torch.Tensor:
+        trans_01, trans_02):
     r"""Function that computes the relative homogenous transformation from a
     reference transformation :math:`T_1^{0} = \begin{bmatrix} R_1 & t_1 \\
     \mathbf{0} & 1 \end{bmatrix}` to destination :math:`T_2^{0} =
@@ -169,13 +170,13 @@ def relative_transformation(
     if not trans_01.dim() == trans_02.dim():
         raise ValueError("Input number of dims must match. Got {} and {}"
                          .format(trans_01.dim(), trans_02.dim()))
-    trans_10: torch.Tensor = inverse_transformation(trans_01)
-    trans_12: torch.Tensor = compose_transformations(trans_10, trans_02)
+    trans_10 = inverse_transformation(trans_01)
+    trans_12 = compose_transformations(trans_10, trans_02)
     return trans_12
 
 
-def transform_points(trans_01: torch.Tensor,
-                     points_1: torch.Tensor) -> torch.Tensor:
+def transform_points(trans_01,
+                     points_1):
     r"""Function that applies transformations to a set of points.
 
     Args:
@@ -240,11 +241,11 @@ def transform_points(trans_01: torch.Tensor,
         >>> output = transform_op(input)  # BxNx3
     """
 
-    def __init__(self, dst_homo_src: torch.Tensor) -> None:
+    def __init__(self, dst_homo_src) -> None:
         super(TransformPoints, self).__init__()
-        self.dst_homo_src: torch.Tensor = dst_homo_src
+        self.dst_homo_src = dst_homo_src
 
-    def forward(self, points_src: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, points_src) -> torch.Tensor:  # type: ignore
         return transform_points(self.dst_homo_src, points_src)
 
 

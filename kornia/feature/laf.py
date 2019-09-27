@@ -1,13 +1,15 @@
 # flake8: noqa E127
 # flake8: noqa E128
 
+from __future__ import division
+from __future__ import absolute_import
 import kornia
 import math
 import torch
 import torch.nn.functional as F
 
 
-def get_laf_scale(LAF: torch.Tensor) -> torch.Tensor:
+def get_laf_scale(LAF):
     """
     Returns a scale of the LAFs
     Args:
@@ -36,7 +38,7 @@ def get_laf_scale(LAF: torch.Tensor) -> torch.Tensor:
     return out.abs().sqrt()
 
 
-def make_upright(LAF: torch.Tensor, eps: float = 1e-9) -> torch.Tensor:
+def make_upright(LAF, eps = 1e-9):
     """
     Rectifies the affine matrix, so that it becomes upright
     Args:
@@ -72,7 +74,7 @@ def make_upright(LAF: torch.Tensor, eps: float = 1e-9) -> torch.Tensor:
                       LAF[..., :, 2:3]], dim=3)
 
 
-def ellipse_to_laf(ells: torch.Tensor) -> torch.Tensor:
+def ellipse_to_laf(ells):
     """
     Converts ellipse regions to LAF format. Ellipse (a, b, c)
     and upright covariance matrix [a11 a12; 0 a22] are connected
@@ -112,7 +114,7 @@ def ellipse_to_laf(ells: torch.Tensor) -> torch.Tensor:
     return out
 
 
-def laf_to_boundary_points(LAF: torch.Tensor, n_pts: int = 50) -> torch.Tensor:
+def laf_to_boundary_points(LAF, n_pts = 50):
     """
     Converts LAFs to boundary points of the regions + center.
     Used for local features visualization, see visualize_laf function
@@ -149,8 +151,8 @@ def laf_to_boundary_points(LAF: torch.Tensor, n_pts: int = 50) -> torch.Tensor:
         pts_h.view(B, N, n_pts, 3))
 
 
-def get_laf_pts_to_draw(LAF: torch.Tensor,
-                        img_idx: int = 0):
+def get_laf_pts_to_draw(LAF,
+                        img_idx = 0):
     """
     Returns numpy array for drawing LAFs (local features).
     To draw:
@@ -176,7 +178,7 @@ def get_laf_pts_to_draw(LAF: torch.Tensor,
     return (pts_np[..., 0], pts_np[..., 1])
 
 
-def denormalize_laf(LAF: torch.Tensor, images: torch.Tensor) -> torch.Tensor:
+def denormalize_laf(LAF, images):
     """
     De-normalizes LAFs from scale to image scale.
     B,N,H,W = images.size()
@@ -215,7 +217,7 @@ def denormalize_laf(LAF: torch.Tensor, images: torch.Tensor) -> torch.Tensor:
     return coef.expand_as(LAF) * LAF
 
 
-def normalize_laf(LAF: torch.Tensor, images: torch.Tensor) -> torch.Tensor:
+def normalize_laf(LAF, images):
     """
     Normalizes LAFs to [0,1] scale from pixel scale.
     See below:
@@ -253,9 +255,9 @@ def normalize_laf(LAF: torch.Tensor, images: torch.Tensor) -> torch.Tensor:
     return coef.expand_as(LAF) * LAF
 
 
-def generate_patch_grid_from_normalized_LAF(img: torch.Tensor,
-                                            LAF: torch.Tensor,
-                                            PS: int = 32) -> torch.Tensor:
+def generate_patch_grid_from_normalized_LAF(img,
+                                            LAF,
+                                            PS = 32):
     """
     Helper function for affine grid generation.
 
@@ -290,9 +292,9 @@ def generate_patch_grid_from_normalized_LAF(img: torch.Tensor,
     return grid
 
 
-def extract_patches_simple(img: torch.Tensor,
-                           LAF: torch.Tensor,
-                           PS: int = 32) -> torch.Tensor:
+def extract_patches_simple(img,
+                           LAF,
+                           PS = 32):
     """
     Extract patches defined by LAFs from image tensor.
     No smoothing applied, huge aliasing (better use extract_patches_from_pyramid)
@@ -308,7 +310,7 @@ def extract_patches_simple(img: torch.Tensor,
     B, N, _, _ = LAF.size()
     out = []
     # for loop temporarily, to be refactored
-    for i in range(B):
+    for i in xrange(B):
         grid = generate_patch_grid_from_normalized_LAF(
             img[i:i + 1], LAF[i:i + 1], PS)
         out.append(F.grid_sample(
@@ -319,9 +321,9 @@ def extract_patches_simple(img: torch.Tensor,
     return torch.cat(out, dim=0).view(B, N, ch, PS, PS)
 
 
-def extract_patches_from_pyramid(img: torch.Tensor,
-                                 LAF: torch.Tensor,
-                                 PS: int = 32) -> torch.Tensor:
+def extract_patches_from_pyramid(img,
+                                 LAF,
+                                 PS = 32):
     """
     Extract patches defined by LAFs from image tensor.
     Patches are extracted from appropriate pyramid level
@@ -343,7 +345,7 @@ def extract_patches_from_pyramid(img: torch.Tensor,
     while min(cur_img.size(2), cur_img.size(3)) > PS:
         num, ch, h, w = cur_img.size()
         # for loop temporarily, to be refactored
-        for i in range(B):
+        for i in xrange(B):
             scale_mask = (pyr_idx[i] == cur_pyr_level).squeeze()
             if (scale_mask.float().sum()) == 0:
                 continue

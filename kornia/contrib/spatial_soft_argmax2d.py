@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import torch
 import torch.nn as nn
 
@@ -6,10 +7,10 @@ from kornia.contrib.dsnt import (spatial_softmax_2d,
 
 
 def spatial_soft_argmax2d(
-        input: torch.Tensor,
-        temperature: torch.Tensor = torch.tensor(1.0),
-        normalized_coordinates: bool = True,
-        eps: float = 1e-8) -> torch.Tensor:
+        input,
+        temperature = torch.tensor(1.0),
+        normalized_coordinates = True,
+        eps = 1e-8):
     r"""Function that computes the Spatial Soft-Argmax 2D
     of a given input heatmap.
 
@@ -36,8 +37,8 @@ def spatial_soft_argmax2d(
         >>> coords = kornia.spatial_soft_argmax2d(input, False)
         tensor([[[1.0000, 1.0000]]])
     """
-    input_soft: torch.Tensor = spatial_softmax_2d(input, temperature)
-    output: torch.Tensor = spatial_softargmax_2d(input_soft,
+    input_soft = spatial_softmax_2d(input, temperature)
+    output = spatial_softargmax_2d(input_soft,
                                                  normalized_coordinates)
     return output
 
@@ -49,14 +50,14 @@ class SpatialSoftArgmax2d(nn.Module):
     """
 
     def __init__(self,
-                 temperature: torch.Tensor = torch.tensor(1.0),
-                 normalized_coordinates: bool = True,
-                 eps: float = 1e-8) -> None:
+                 temperature = torch.tensor(1.0),
+                 normalized_coordinates = True,
+                 eps = 1e-8):
         super(SpatialSoftArgmax2d, self).__init__()
-        self.temperature: torch.Tensor = temperature
-        self.normalized_coordinates: bool = normalized_coordinates
-        self.eps: float = eps
+        self.temperature = temperature
+        self.normalized_coordinates = normalized_coordinates
+        self.eps = eps
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         return spatial_soft_argmax2d(input, self.temperature,
                                      self.normalized_coordinates, self.eps)

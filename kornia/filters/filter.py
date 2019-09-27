@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from typing import Tuple, List
 
 import torch
@@ -6,7 +7,7 @@ import torch.nn.functional as F
 from kornia.filters.kernels import normalize_kernel2d
 
 
-def compute_padding(kernel_size: Tuple[int, int]) -> List[int]:
+def compute_padding(kernel_size):
     """Computes padding tuple."""
     # 4 ints:  (padding_left, padding_right,padding_top,padding_bottom)
     # https://pytorch.org/docs/stable/nn.html#torch.nn.functional.pad
@@ -15,9 +16,9 @@ def compute_padding(kernel_size: Tuple[int, int]) -> List[int]:
     return [computed[1], computed[1], computed[0], computed[0]]
 
 
-def filter2D(input: torch.Tensor, kernel: torch.Tensor,
-             border_type: str = 'reflect',
-             normalized: bool = False) -> torch.Tensor:
+def filter2D(input, kernel,
+             border_type = 'reflect',
+             normalized = False):
     r"""Function that convolves a tensor with a kernel.
 
     The function applies a given kernel to a tensor. The kernel is applied
@@ -59,21 +60,21 @@ def filter2D(input: torch.Tensor, kernel: torch.Tensor,
         raise ValueError("Invalid kernel shape, we expect BxHxW. Got: {}"
                          .format(kernel.shape))
 
-    borders_list: List[str] = ['constant', 'reflect', 'replicate', 'circular']
+    borders_list = ['constant', 'reflect', 'replicate', 'circular']
     if border_type not in borders_list:
         raise ValueError("Invalid border_type, we expect the following: {0}."
                          "Got: {1}".format(borders_list, border_type))
 
     # prepare kernel
     b, c, h, w = input.shape
-    tmp_kernel: torch.Tensor = kernel.to(input.device).to(input.dtype)
+    tmp_kernel = kernel.to(input.device).to(input.dtype)
     tmp_kernel = tmp_kernel.repeat(c, 1, 1, 1)
     if normalized:
         tmp_kernel = normalize_kernel2d(tmp_kernel)
     # pad the input tensor
     height, width = tmp_kernel.shape[-2:]
-    padding_shape: List[int] = compute_padding((height, width))
-    input_pad: torch.Tensor = F.pad(input, padding_shape, mode=border_type)
+    padding_shape = compute_padding((height, width))
+    input_pad = F.pad(input, padding_shape, mode=border_type)
 
     # convolve the tensor with the kernel
     return F.conv2d(input_pad, tmp_kernel, padding=0, stride=1, groups=c)

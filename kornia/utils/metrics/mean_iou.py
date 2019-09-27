@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 from typing import Optional
 
 import torch
@@ -5,10 +7,10 @@ from kornia.utils.metrics.confusion_matrix import confusion_matrix
 
 
 def mean_iou(
-        input: torch.Tensor,
-        target: torch.Tensor,
-        num_classes: int,
-        eps: Optional[float] = 1e-6) -> torch.Tensor:
+        input,
+        target,
+        num_classes,
+        eps = 1e-6):
     r"""Calculate mean Intersection-Over-Union (mIOU).
 
     The function internally computes the confusion matrix.
@@ -43,7 +45,7 @@ def mean_iou(
         raise ValueError("The number of classes must be an intenger bigger "
                          "than two. Got: {}".format(num_classes))
     # we first compute the confusion matrix
-    conf_mat: torch.Tensor = confusion_matrix(input, target, num_classes)
+    conf_mat = confusion_matrix(input, target, num_classes)
 
     # compute the actual intersection over union
     sum_over_row = torch.sum(conf_mat, dim=1)

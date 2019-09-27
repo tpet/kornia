@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from typing import Tuple
 
 import torch
@@ -42,34 +43,34 @@ class BoxBlur(nn.Module):
         >>> output = blur(input)  # 2x4x5x7
     """
 
-    def __init__(self, kernel_size: Tuple[int, int],
-                 border_type: str = 'reflect',
-                 normalized: bool = True) -> None:
+    def __init__(self, kernel_size,
+                 border_type = 'reflect',
+                 normalized = True):
         super(BoxBlur, self).__init__()
-        self.kernel_size: Tuple[int, int] = kernel_size
-        self.border_type: str = border_type
-        self.kernel: torch.Tensor = get_box_kernel2d(kernel_size)
-        self.normalized: bool = normalized
+        self.kernel_size = kernel_size
+        self.border_type = border_type
+        self.kernel = get_box_kernel2d(kernel_size)
+        self.normalized = normalized
         if self.normalized:
             self.kernel = normalize_kernel2d(self.kernel)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return self.__class__.__name__ +\
             '(kernel_size=' + str(self.kernel_size) + ', ' +\
             'normalized=' + str(self.normalized) + ', ' + \
             'border_type=' + self.border_type + ')'
 
-    def forward(self, input: torch.Tensor):  # type: ignore
+    def forward(self, input):  # type: ignore
         return kornia.filter2D(input, self.kernel, self.border_type)
 
 
 # functiona api
 
 
-def box_blur(input: torch.Tensor,
-             kernel_size: Tuple[int, int],
-             border_type: str = 'reflect',
-             normalized: bool = True) -> torch.Tensor:
+def box_blur(input,
+             kernel_size,
+             border_type = 'reflect',
+             normalized = True):
     r"""Blurs an image using the box filter.
 
     See :class:`~kornia.filters.BoxBlur` for details.

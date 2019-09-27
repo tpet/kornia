@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import torch
 import torch.nn as nn
 
@@ -18,18 +19,18 @@ class AdjustBrightness(nn.Module):
         torch.Tensor: Adjusted image.
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         super(AdjustBrightness, self).__init__()
 
     def forward(self,  # type: ignore
-                image: torch.Tensor,  # type: ignore
-                brightness_factor: torch.Tensor  # type: ignore
-                ) -> torch.Tensor:  # type: ignore
+                image,  # type: ignore
+                brightness_factor  # type: ignore
+                ):  # type: ignore
         return adjust_brightness(image, brightness_factor)
 
 
-def adjust_brightness(image: torch.Tensor,
-                      brightness_factor: torch.Tensor) -> torch.Tensor:
+def adjust_brightness(image,
+                      brightness_factor):
     r"""Adjust Brightness of an Image
 
     See :class:`~kornia.color.AdjustBrightness` for details.
@@ -62,9 +63,9 @@ def adjust_brightness(image: torch.Tensor,
             brightness_factor = brightness_factor.unsqueeze(-1)
 
     # Apply brightness factor to each channel
-    adjust_image: torch.Tensor = image * brightness_factor
+    adjust_image = image * brightness_factor
 
     # Truncate between pixel values
-    out: torch.Tensor = torch.clamp(adjust_image, 0.0, 1.0)
+    out = torch.clamp(adjust_image, 0.0, 1.0)
 
     return out

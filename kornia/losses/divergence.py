@@ -1,6 +1,7 @@
 r"""Losses based on the divergence between probability distributions."""
 
 
+from __future__ import absolute_import
 import torch
 import torch.nn.functional as F
 
@@ -31,9 +32,9 @@ def _reduce_loss(losses, reduction):
 
 
 def js_div_loss_2d(
-        input: torch.Tensor,
-        target: torch.Tensor,
-        reduction: str = 'mean'
+        input,
+        target,
+        reduction = 'mean'
 ):
     r"""Calculates the Jensen-Shannon divergence loss between heatmaps.
 
@@ -54,9 +55,9 @@ def js_div_loss_2d(
 
 
 def kl_div_loss_2d(
-        input: torch.Tensor,
-        target: torch.Tensor,
-        reduction: str = 'mean'
+        input,
+        target,
+        reduction = 'mean'
 ):
     r"""Calculates the Kullback-Leibler divergence loss between heatmaps.
 

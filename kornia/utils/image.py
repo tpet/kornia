@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 from typing import Optional
 
 import numpy as np
 import torch
 
 
-def image_to_tensor(image: np.array) -> torch.Tensor:
+def image_to_tensor(image):
     """Converts a numpy image to a PyTorch 4d tensor image.
 
     Args:
@@ -25,7 +26,7 @@ def image_to_tensor(image: np.array) -> torch.Tensor:
             "Input size must be a two, three or four dimensional array")
 
     input_shape = image.shape
-    tensor: torch.Tensor = torch.from_numpy(image)
+    tensor = torch.from_numpy(image)
     if len(input_shape) == 2:
         # (H, W) -> (1, 1, H, W)
         tensor = tensor.unsqueeze(0).unsqueeze(0)
@@ -41,7 +42,7 @@ def image_to_tensor(image: np.array) -> torch.Tensor:
     return tensor
 
 
-def tensor_to_image(tensor: torch.Tensor) -> np.array:
+def tensor_to_image(tensor):
     """Converts a PyTorch tensor image to a numpy image. In case the tensor is
     in the GPU, it will be copied back to CPU.
 
@@ -63,7 +64,7 @@ def tensor_to_image(tensor: torch.Tensor) -> np.array:
             "Input size must be a two, three or four dimensional tensor")
 
     input_shape = tensor.shape
-    image: np.array = tensor.cpu().detach().numpy()
+    image = tensor.cpu().detach().numpy()
     if len(input_shape) == 2:
         # (H, W) -> (H, W)
         image = image

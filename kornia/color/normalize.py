@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 import torch
 import torch.nn as nn
 
@@ -16,14 +18,14 @@ class Normalize(nn.Module):
         std (torch.Tensor): Standard deviation for each channel.
     """
 
-    def __init__(self, mean: torch.Tensor, std: torch.Tensor) -> None:
+    def __init__(self, mean, std):
 
         super(Normalize, self).__init__()
 
-        self.mean: torch.Tensor = mean
-        self.std: torch.Tensor = std
+        self.mean = mean
+        self.std = std
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         return normalize(input, self.mean, self.std)
 
     def __repr__(self):
@@ -31,8 +33,8 @@ class Normalize(nn.Module):
         return self.__class__.__name__ + repr
 
 
-def normalize(data: torch.Tensor, mean: torch.Tensor,
-              std: torch.Tensor) -> torch.Tensor:
+def normalize(data, mean,
+              std):
     r"""Normalise the image with channel-wise mean and standard deviation.
 
     See :class:`~kornia.color.Normalize` for details.
@@ -64,6 +66,6 @@ def normalize(data: torch.Tensor, mean: torch.Tensor,
     mean = mean[..., :, None, None].to(data.device)
     std = std[..., :, None, None].to(data.device)
 
-    out: torch.Tensor = (data - mean) / std
+    out = (data - mean) / std
 
     return out

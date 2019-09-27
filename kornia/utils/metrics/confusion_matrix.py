@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 from typing import Optional
 
 import torch
@@ -7,10 +9,10 @@ import torch
 
 
 def confusion_matrix(
-        input: torch.Tensor,
-        target: torch.Tensor,
-        num_classes: int,
-        normalized: Optional[bool] = False) -> torch.Tensor:
+        input,
+        target,
+        num_classes,
+        normalized = False):
     r"""Compute confusion matrix to evaluate the accuracy of a classification.
 
     Args:
@@ -44,25 +46,25 @@ def confusion_matrix(
     if not isinstance(num_classes, int) or num_classes < 2:
         raise ValueError("The number of classes must be an intenger bigger "
                          "than two. Got: {}".format(num_classes))
-    batch_size: int = input.shape[0]
+    batch_size = input.shape[0]
 
     # hack for bitcounting 2 arrays together
     # NOTE: torch.bincount does not implement batched version
-    pre_bincount: torch.Tensor = input + target * num_classes
-    pre_bincount_vec: torch.Tensor = pre_bincount.view(batch_size, -1)
+    pre_bincount = input + target * num_classes
+    pre_bincount_vec = pre_bincount.view(batch_size, -1)
 
     confusion_list = []
-    for iter_id in range(batch_size):
-        pb: torch.Tensor = pre_bincount_vec[iter_id]
-        bin_count: torch.Tensor = torch.bincount(pb, minlength=num_classes**2)
+    for iter_id in xrange(batch_size):
+        pb = pre_bincount_vec[iter_id]
+        bin_count = torch.bincount(pb, minlength=num_classes**2)
         confusion_list.append(bin_count)
 
-    confusion_vec: torch.Tensor = torch.stack(confusion_list)
-    confusion_mat: torch.Tensor = confusion_vec.view(
+    confusion_vec = torch.stack(confusion_list)
+    confusion_mat = confusion_vec.view(
         batch_size, num_classes, num_classes).to(torch.float32)  # BxKxK
 
     if normalized:
-        norm_val: torch.Tensor = torch.sum(confusion_mat, dim=1, keepdim=True)
+        norm_val = torch.sum(confusion_mat, dim=1, keepdim=True)
         confusion_mat = confusion_mat / (norm_val + 1e-6)
 
     return confusion_mat

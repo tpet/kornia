@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 from typing import Optional
 
 import torch
@@ -10,8 +12,8 @@ from kornia.geometry.conversions import (
 
 
 def project_points(
-        point_3d: torch.Tensor,
-        camera_matrix: torch.Tensor) -> torch.Tensor:
+        point_3d,
+        camera_matrix):
     r"""Projects a 3d point onto the 2d camera plane.
 
     Args:
@@ -42,28 +44,28 @@ def project_points(
     # v = fy * Y / Z + cy
 
     # project back using depth dividing in a safe way
-    xy_coords: torch.Tensor = convert_points_from_homogeneous(point_3d)
-    x_coord: torch.Tensor = xy_coords[..., 0:1]
-    y_coord: torch.Tensor = xy_coords[..., 1:2]
+    xy_coords = convert_points_from_homogeneous(point_3d)
+    x_coord = xy_coords[..., 0:1]
+    y_coord = xy_coords[..., 1:2]
 
     # unpack intrinsics
-    fx: torch.Tensor = camera_matrix[..., 0:1, 0]
-    fy: torch.Tensor = camera_matrix[..., 1:2, 1]
-    cx: torch.Tensor = camera_matrix[..., 0:1, 2]
-    cy: torch.Tensor = camera_matrix[..., 1:2, 2]
+    fx = camera_matrix[..., 0:1, 0]
+    fy = camera_matrix[..., 1:2, 1]
+    cx = camera_matrix[..., 0:1, 2]
+    cy = camera_matrix[..., 1:2, 2]
 
     # apply intrinsics ans return
-    u_coord: torch.Tensor = x_coord * fx + cx
-    v_coord: torch.Tensor = y_coord * fy + cy
+    u_coord = x_coord * fx + cx
+    v_coord = y_coord * fy + cy
 
     return torch.cat([u_coord, v_coord], dim=-1)
 
 
 def unproject_points(
-        point_2d: torch.Tensor,
-        depth: torch.Tensor,
-        camera_matrix: torch.Tensor,
-        normalize: Optional[bool] = False) -> torch.Tensor:
+        point_2d,
+        depth,
+        camera_matrix,
+        normalize = False):
     r"""Unprojects a 2d point in 3d.
 
     Transform coordinates in the pixel frame to the camera frame.
@@ -108,20 +110,20 @@ def unproject_points(
     # y = (v - cy) * Z / fy
 
     # unpack coordinates
-    u_coord: torch.Tensor = point_2d[..., 0:1]
-    v_coord: torch.Tensor = point_2d[..., 1:2]
+    u_coord = point_2d[..., 0:1]
+    v_coord = point_2d[..., 1:2]
 
     # unpack intrinsics
-    fx: torch.Tensor = camera_matrix[..., 0:1, 0]
-    fy: torch.Tensor = camera_matrix[..., 1:2, 1]
-    cx: torch.Tensor = camera_matrix[..., 0:1, 2]
-    cy: torch.Tensor = camera_matrix[..., 1:2, 2]
+    fx = camera_matrix[..., 0:1, 0]
+    fy = camera_matrix[..., 1:2, 1]
+    cx = camera_matrix[..., 0:1, 2]
+    cy = camera_matrix[..., 1:2, 2]
 
     # projective
-    x_coord: torch.Tensor = (u_coord - cx) / fx
-    y_coord: torch.Tensor = (v_coord - cy) / fy
+    x_coord = (u_coord - cx) / fx
+    y_coord = (v_coord - cy) / fy
 
-    xyz: torch.Tensor = torch.cat([x_coord, y_coord], dim=-1)
+    xyz = torch.cat([x_coord, y_coord], dim=-1)
     xyz = convert_points_to_homogeneous(xyz)
 
     if normalize:

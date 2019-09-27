@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 from typing import Union
 
 import torch
@@ -22,28 +24,28 @@ __all__ = [
 # utilities to compute affine matrices
 
 
-def _compute_tensor_center(tensor: torch.Tensor) -> torch.Tensor:
+def _compute_tensor_center(tensor):
     """Computes the center of tensor plane."""
     height, width = tensor.shape[-2:]
-    center_x: float = float(width - 1) / 2
-    center_y: float = float(height - 1) / 2
-    center: torch.Tensor = torch.tensor(
+    center_x = float(width - 1) / 2
+    center_y = float(height - 1) / 2
+    center = torch.tensor(
         [center_x, center_y],
         device=tensor.device, dtype=tensor.dtype)
     return center
 
 
-def _compute_rotation_matrix(angle: torch.Tensor,
-                             center: torch.Tensor) -> torch.Tensor:
+def _compute_rotation_matrix(angle,
+                             center):
     """Computes a pure affine rotation matrix."""
-    scale: torch.Tensor = torch.ones_like(angle)
-    matrix: torch.Tensor = get_rotation_matrix2d(center, angle, scale)
+    scale = torch.ones_like(angle)
+    matrix = get_rotation_matrix2d(center, angle, scale)
     return matrix
 
 
-def _compute_translation_matrix(translation: torch.Tensor) -> torch.Tensor:
+def _compute_translation_matrix(translation):
     """Computes affine matrix for translation."""
-    matrix: torch.Tensor = torch.eye(
+    matrix = torch.eye(
         3, device=translation.device, dtype=translation.dtype)
     matrix = matrix.repeat(translation.shape[0], 1, 1)
 
@@ -53,17 +55,17 @@ def _compute_translation_matrix(translation: torch.Tensor) -> torch.Tensor:
     return matrix
 
 
-def _compute_scaling_matrix(scale: torch.Tensor,
-                            center: torch.Tensor) -> torch.Tensor:
+def _compute_scaling_matrix(scale,
+                            center):
     """Computes affine matrix for scaling."""
-    angle: torch.Tensor = torch.zeros_like(scale)
-    matrix: torch.Tensor = get_rotation_matrix2d(center, angle, scale)
+    angle = torch.zeros_like(scale)
+    matrix = get_rotation_matrix2d(center, angle, scale)
     return matrix
 
 
-def _compute_shear_matrix(shear: torch.Tensor) -> torch.Tensor:
+def _compute_shear_matrix(shear):
     """Computes affine matrix for shearing."""
-    matrix: torch.Tensor = torch.eye(3, device=shear.device, dtype=shear.dtype)
+    matrix = torch.eye(3, device=shear.device, dtype=shear.dtype)
     matrix = matrix.repeat(shear.shape[0], 1, 1)
 
     shx, shy = torch.chunk(shear, chunks=2, dim=-1)
@@ -75,7 +77,7 @@ def _compute_shear_matrix(shear: torch.Tensor) -> torch.Tensor:
 # based on:
 # https://github.com/anibali/tvl/blob/master/src/tvl/transforms.py#L166
 
-def affine(tensor: torch.Tensor, matrix: torch.Tensor) -> torch.Tensor:
+def affine(tensor, matrix):
     r"""Apply an affine transformation to the image.
 
     Args:
@@ -86,7 +88,7 @@ def affine(tensor: torch.Tensor, matrix: torch.Tensor) -> torch.Tensor:
         torch.Tensor: The warped image.
     """
     # warping needs data in the shape of BCHW
-    is_unbatched: bool = tensor.ndimension() == 3
+    is_unbatched = tensor.ndimension() == 3
     if is_unbatched:
         tensor = torch.unsqueeze(tensor, dim=0)
 
@@ -95,9 +97,9 @@ def affine(tensor: torch.Tensor, matrix: torch.Tensor) -> torch.Tensor:
     matrix = matrix.expand(tensor.shape[0], -1, -1)
 
     # warp the input tensor
-    height: int = tensor.shape[-2]
-    width: int = tensor.shape[-1]
-    warped: torch.Tensor = warp_affine(tensor, matrix, (height, width))
+    height = tensor.shape[-2]
+    width = tensor.shape[-1]
+    warped = warp_affine(tensor, matrix, (height, width))
 
     # return in the original shape
     if is_unbatched:
@@ -109,8 +111,8 @@ def affine(tensor: torch.Tensor, matrix: torch.Tensor) -> torch.Tensor:
 # based on:
 # https://github.com/anibali/tvl/blob/master/src/tvl/transforms.py#L185
 
-def rotate(tensor: torch.Tensor, angle: torch.Tensor,
-           center: Union[None, torch.Tensor] = None) -> torch.Tensor:
+def rotate(tensor, angle,
+           center = None):
     r"""Rotate the image anti-clockwise about the centre.
 
     See :class:`~kornia.Rotate` for details.
@@ -136,13 +138,13 @@ def rotate(tensor: torch.Tensor, angle: torch.Tensor,
     # TODO: add broadcasting to get_rotation_matrix2d for center
     angle = angle.expand(tensor.shape[0])
     center = center.expand(tensor.shape[0], -1)
-    rotation_matrix: torch.Tensor = _compute_rotation_matrix(angle, center)
+    rotation_matrix = _compute_rotation_matrix(angle, center)
 
     # warp using the affine transform
     return affine(tensor, rotation_matrix[..., :2, :3])
 
 
-def translate(tensor: torch.Tensor, translation: torch.Tensor) -> torch.Tensor:
+def translate(tensor, translation):
     r"""Translate the tensor in pixel units.
 
     See :class:`~kornia.Translate` for details.
@@ -158,14 +160,14 @@ def translate(tensor: torch.Tensor, translation: torch.Tensor) -> torch.Tensor:
                          "Got: {}".format(tensor.shape))
 
     # compute the translation matrix
-    translation_matrix: torch.Tensor = _compute_translation_matrix(translation)
+    translation_matrix = _compute_translation_matrix(translation)
 
     # warp using the affine transform
     return affine(tensor, translation_matrix[..., :2, :3])
 
 
-def scale(tensor: torch.Tensor, scale_factor: torch.Tensor,
-          center: Union[None, torch.Tensor] = None) -> torch.Tensor:
+def scale(tensor, scale_factor,
+          center = None):
     r"""Scales the input image.
 
     See :class:`~kornia.Scale` for details.
@@ -185,13 +187,13 @@ def scale(tensor: torch.Tensor, scale_factor: torch.Tensor,
     # TODO: add broadcasting to get_rotation_matrix2d for center
     center = center.expand(tensor.shape[0], -1)
     scale_factor = scale_factor.expand(tensor.shape[0])
-    scaling_matrix: torch.Tensor = _compute_scaling_matrix(scale_factor, center)
+    scaling_matrix = _compute_scaling_matrix(scale_factor, center)
 
     # warp using the affine transform
     return affine(tensor, scaling_matrix[..., :2, :3])
 
 
-def shear(tensor: torch.Tensor, shear: torch.Tensor) -> torch.Tensor:
+def shear(tensor, shear):
     r"""Shear the tensor.
 
     See :class:`~kornia.Shear` for details.
@@ -207,7 +209,7 @@ def shear(tensor: torch.Tensor, shear: torch.Tensor) -> torch.Tensor:
                          "Got: {}".format(tensor.shape))
 
     # compute the translation matrix
-    shear_matrix: torch.Tensor = _compute_shear_matrix(shear)
+    shear_matrix = _compute_shear_matrix(shear)
 
     # warp using the affine transform
     return affine(tensor, shear_matrix[..., :2, :3])
@@ -226,13 +228,13 @@ class Rotate(nn.Module):
         torch.Tensor: The rotated tensor.
     """
 
-    def __init__(self, angle: torch.Tensor,
-                 center: Union[None, torch.Tensor] = None) -> None:
+    def __init__(self, angle,
+                 center = None):
         super(Rotate, self).__init__()
-        self.angle: torch.Tensor = angle
-        self.center: Union[None, torch.Tensor] = center
+        self.angle = angle
+        self.center = center
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         return rotate(input, self.angle, self.center)
 
 
@@ -248,11 +250,11 @@ class Translate(nn.Module):
         torch.Tensor: The translated tensor.
     """
 
-    def __init__(self, translation: torch.Tensor) -> None:
+    def __init__(self, translation):
         super(Translate, self).__init__()
-        self.translation: torch.Tensor = translation
+        self.translation = translation
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         return translate(input, self.translation)
 
 
@@ -270,13 +272,13 @@ class Scale(nn.Module):
         torch.Tensor: The scaled tensor.
     """
 
-    def __init__(self, scale_factor: torch.Tensor,
-                 center: Union[None, torch.Tensor] = None) -> None:
+    def __init__(self, scale_factor,
+                 center = None):
         super(Scale, self).__init__()
-        self.scale_factor: torch.Tensor = scale_factor
-        self.center: Union[None, torch.Tensor] = center
+        self.scale_factor = scale_factor
+        self.center = center
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         return scale(input, self.scale_factor, self.center)
 
 
@@ -293,9 +295,9 @@ class Shear(nn.Module):
         torch.Tensor: The skewed tensor.
     """
 
-    def __init__(self, shear: torch.Tensor) -> None:
+    def __init__(self, shear):
         super(Shear, self).__init__()
-        self.shear: torch.Tensor = shear
+        self.shear = shear
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         return shear(input, self.shear)

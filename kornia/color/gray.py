@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import torch
 import torch.nn as nn
 
@@ -24,14 +25,14 @@ class RgbToGrayscale(nn.Module):
         >>> output = gray(input)  # 2x1x4x5
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         super(RgbToGrayscale, self).__init__()
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # type: ignore
+    def forward(self, input):  # type: ignore
         return rgb_to_grayscale(input)
 
 
-def rgb_to_grayscale(input: torch.Tensor) -> torch.Tensor:
+def rgb_to_grayscale(input):
     r"""Convert an RGB image to grayscale.
 
     See :class:`~kornia.color.RgbToGrayscale` for details.
@@ -52,5 +53,5 @@ def rgb_to_grayscale(input: torch.Tensor) -> torch.Tensor:
 
     # https://docs.opencv.org/4.0.1/de/d25/imgproc_color_conversions.html
     r, g, b = torch.chunk(input, chunks=3, dim=-3)
-    gray: torch.Tensor = 0.299 * r + 0.587 * g + 0.110 * b
+    gray = 0.299 * r + 0.587 * g + 0.110 * b
     return gray

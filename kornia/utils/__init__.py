@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from .one_hot import one_hot
 from .grid import create_meshgrid
 from .image import tensor_to_image, image_to_tensor

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from .gray import rgb_to_grayscale, RgbToGrayscale
 from .rgb import BgrToRgb, bgr_to_rgb
 from .rgb import RgbToBgr, rgb_to_bgr

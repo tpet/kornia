@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 from typing import Tuple
 
 import torch
@@ -12,8 +14,8 @@ __all__ = [
 ]
 
 
-def crop_and_resize(tensor: torch.Tensor, boxes: torch.Tensor,
-                    size: Tuple[int, int]) -> torch.Tensor:
+def crop_and_resize(tensor, boxes,
+                    size):
     r"""Extracts crops from the input tensor and resizes them.
 
     Args:
@@ -59,17 +61,17 @@ def crop_and_resize(tensor: torch.Tensor, boxes: torch.Tensor,
         raise ValueError("Input size must be a tuple/list of length 2. Got {}"
                          .format(size))
     # unpack input data
-    dst_h: torch.Tensor = torch.tensor(size[0])
-    dst_w: torch.Tensor = torch.tensor(size[1])
+    dst_h = torch.tensor(size[0])
+    dst_w = torch.tensor(size[1])
 
     # [y, x] origin
     # top-left, top-right, bottom-left, bottom-right
-    points_src: torch.Tensor = boxes.to(
+    points_src = boxes.to(
         tensor.device).to(tensor.dtype)
 
     # [y, x] destination
     # top-left, top-right, bottom-left, bottom-right
-    points_dst: torch.Tensor = torch.tensor([[
+    points_dst = torch.tensor([[
         [0, 0],
         [0, dst_w - 1],
         [dst_h - 1, 0],
@@ -78,18 +80,18 @@ def crop_and_resize(tensor: torch.Tensor, boxes: torch.Tensor,
         tensor.device).to(tensor.dtype)
 
     # warping needs data in the shape of BCHW
-    is_unbatched: bool = tensor.ndimension() == 3
+    is_unbatched = tensor.ndimension() == 3
     if is_unbatched:
         tensor = torch.unsqueeze(tensor, dim=0)
 
     # compute transformation between points and warp
-    dst_trans_src: torch.Tensor = get_perspective_transform(
+    dst_trans_src = get_perspective_transform(
         points_src, points_dst)
 
     # simulate broadcasting
     dst_trans_src = dst_trans_src.expand(tensor.shape[0], -1, -1)
 
-    patches: torch.Tensor = warp_perspective(
+    patches = warp_perspective(
         tensor, dst_trans_src, (dst_h, dst_w))
 
     # return in the original shape
@@ -99,7 +101,7 @@ def crop_and_resize(tensor: torch.Tensor, boxes: torch.Tensor,
     return patches
 
 
-def center_crop(tensor: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
+def center_crop(tensor, size):
     r"""Crops the given tensor at the center.
 
     Args:
@@ -132,26 +134,26 @@ def center_crop(tensor: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
         raise ValueError("Input size must be a tuple/list of length 2. Got {}"
                          .format(size))
     # unpack input sizes
-    dst_h: torch.Tensor = torch.tensor(size[0])
-    dst_w: torch.Tensor = torch.tensor(size[1])
-    src_h: torch.Tensor = torch.tensor(tensor.shape[-2])
-    src_w: torch.Tensor = torch.tensor(tensor.shape[-1])
+    dst_h = torch.tensor(size[0])
+    dst_w = torch.tensor(size[1])
+    src_h = torch.tensor(tensor.shape[-2])
+    src_w = torch.tensor(tensor.shape[-1])
 
     # compute start/end offsets
-    dst_h_half: torch.Tensor = dst_h / 2
-    dst_w_half: torch.Tensor = dst_w / 2
-    src_h_half: torch.Tensor = src_h / 2
-    src_w_half: torch.Tensor = src_w / 2
+    dst_h_half = dst_h / 2
+    dst_w_half = dst_w / 2
+    src_h_half = src_h / 2
+    src_w_half = src_w / 2
 
-    start_x: torch.Tensor = src_h_half - dst_h_half
-    start_y: torch.Tensor = src_w_half - dst_w_half
+    start_x = src_h_half - dst_h_half
+    start_y = src_w_half - dst_w_half
 
-    end_x: torch.Tensor = start_x + dst_w - 1
-    end_y: torch.Tensor = start_y + dst_h - 1
+    end_x = start_x + dst_w - 1
+    end_y = start_y + dst_h - 1
 
     # [y, x] origin
     # top-left, top-right, bottom-left, bottom-right
-    points_src: torch.Tensor = torch.tensor([[
+    points_src = torch.tensor([[
         [start_y, start_x],
         [start_y, end_x],
         [end_y, start_x],
@@ -160,7 +162,7 @@ def center_crop(tensor: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
 
     # [y, x] destination
     # top-left, top-right, bottom-left, bottom-right
-    points_dst: torch.Tensor = torch.tensor([[
+    points_dst = torch.tensor([[
         [0, 0],
         [0, dst_w - 1],
         [dst_h - 1, 0],
@@ -168,16 +170,16 @@ def center_crop(tensor: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
     ]]).to(tensor.device).to(tensor.dtype)
 
     # warping needs data in the shape of BCHW
-    is_unbatched: bool = tensor.ndimension() == 3
+    is_unbatched = tensor.ndimension() == 3
     if is_unbatched:
         tensor = torch.unsqueeze(tensor, dim=0)
 
     # compute transformation between points and warp
-    dst_trans_src: torch.Tensor = get_perspective_transform(
+    dst_trans_src = get_perspective_transform(
         points_src, points_dst)
     dst_trans_src = dst_trans_src.repeat(tensor.shape[0], 1, 1)
 
-    patches: torch.Tensor = warp_perspective(
+    patches = warp_perspective(
         tensor, dst_trans_src, (dst_h, dst_w))
 
     # return in the original shape

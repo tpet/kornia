@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from typing import Tuple
 
 import torch
@@ -6,9 +7,9 @@ import torch.nn.functional as F
 from kornia.filters.kernels import get_binary_kernel2d
 
 
-def _compute_zero_padding(kernel_size: Tuple[int, int]) -> Tuple[int, int]:
+def _compute_zero_padding(kernel_size):
     r"""Utility function that computes zero padding tuple."""
-    computed: Tuple[int, ...] = tuple([(k - 1) // 2 for k in kernel_size])
+    computed = tuple([(k - 1) // 2 for k in kernel_size])
     return computed[0], computed[1]
 
 
@@ -31,12 +32,12 @@ class MedianBlur(nn.Module):
         >>> output = blur(input)  # 2x4x5x7
     """
 
-    def __init__(self, kernel_size: Tuple[int, int]) -> None:
+    def __init__(self, kernel_size):
         super(MedianBlur, self).__init__()
-        self.kernel: torch.Tensor = get_binary_kernel2d(kernel_size)
-        self.padding: Tuple[int, int] = _compute_zero_padding(kernel_size)
+        self.kernel = get_binary_kernel2d(kernel_size)
+        self.padding = _compute_zero_padding(kernel_size)
 
-    def forward(self, input: torch.Tensor):  # type: ignore
+    def forward(self, input):  # type: ignore
         if not torch.is_tensor(input):
             raise TypeError("Input type is not a torch.Tensor. Got {}"
                             .format(type(input)))
@@ -45,24 +46,24 @@ class MedianBlur(nn.Module):
                              .format(input.shape))
         # prepare kernel
         b, c, h, w = input.shape
-        tmp_kernel: torch.Tensor = self.kernel.to(input.device).to(input.dtype)
-        kernel: torch.Tensor = tmp_kernel.repeat(c, 1, 1, 1)
+        tmp_kernel = self.kernel.to(input.device).to(input.dtype)
+        kernel = tmp_kernel.repeat(c, 1, 1, 1)
 
         # map the local window to single vector
-        features: torch.Tensor = F.conv2d(
+        features = F.conv2d(
             input, kernel, padding=self.padding, stride=1, groups=c)
         features = features.view(b, c, -1, h, w)  # BxCx(K_h * K_w)xHxW
 
         # compute the median along the feature axis
-        median: torch.Tensor = torch.median(features, dim=2)[0]
+        median = torch.median(features, dim=2)[0]
         return median
 
 
 # functiona api
 
 
-def median_blur(input: torch.Tensor,
-                kernel_size: Tuple[int, int]) -> torch.Tensor:
+def median_blur(input,
+                kernel_size):
     r"""Blurs an image using the median filter.
 
     See :class:`~kornia.filters.MedianBlur` for details.

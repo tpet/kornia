@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from typing import Tuple
 
 import torch
@@ -36,23 +37,23 @@ class HomographyWarper(nn.Module):
 
     def __init__(
             self,
-            height: int,
-            width: int,
-            mode: str = 'bilinear',
-            padding_mode: str = 'zeros',
-            normalized_coordinates: bool = True) -> None:
+            height,
+            width,
+            mode = 'bilinear',
+            padding_mode = 'zeros',
+            normalized_coordinates = True):
         super(HomographyWarper, self).__init__()
-        self.width: int = width
-        self.height: int = height
-        self.mode: str = mode
-        self.padding_mode: str = padding_mode
-        self.normalized_coordinates: bool = normalized_coordinates
+        self.width = width
+        self.height = height
+        self.mode = mode
+        self.padding_mode = padding_mode
+        self.normalized_coordinates = normalized_coordinates
 
         # create base grid to compute the flow
-        self.grid: torch.Tensor = create_meshgrid(
+        self.grid = create_meshgrid(
             height, width, normalized_coordinates=normalized_coordinates)
 
-    def warp_grid(self, dst_homo_src: torch.Tensor) -> torch.Tensor:
+    def warp_grid(self, dst_homo_src):
         r"""Computes the grid to warp the coordinates grid by an homography.
 
         Args:
@@ -63,23 +64,23 @@ class HomographyWarper(nn.Module):
         Returns:
             torch.Tensor: the transformed grid of shape :math:`(N, H, W, 2)`.
         """
-        batch_size: int = dst_homo_src.shape[0]
-        device: torch.device = dst_homo_src.device
-        dtype: torch.dtype = dst_homo_src.dtype
+        batch_size = dst_homo_src.shape[0]
+        device = dst_homo_src.device
+        dtype = dst_homo_src.dtype
         # expand grid to match the input batch size
-        grid: torch.Tensor = self.grid.expand(batch_size, -1, -1, -1)  # NxHxWx2
+        grid = self.grid.expand(batch_size, -1, -1, -1)  # NxHxWx2
         if len(dst_homo_src.shape) == 3:  # local homography case
             dst_homo_src = dst_homo_src.view(batch_size, 1, 3, 3)  # NxHxWx3x3
         # perform the actual grid transformation,
         # the grid is copied to input device and casted to the same type
-        flow: torch.Tensor = transform_points(
+        flow = transform_points(
             dst_homo_src, grid.to(device).to(dtype))  # NxHxWx2
         return flow.view(batch_size, self.height, self.width, 2)  # NxHxWx2
 
     def forward(  # type: ignore
             self,
-            patch_src: torch.Tensor,
-            dst_homo_src: torch.Tensor) -> torch.Tensor:
+            patch_src,
+            dst_homo_src):
         r"""Warps an image or tensor from source into reference frame.
 
         Args:
@@ -113,11 +114,11 @@ class HomographyWarper(nn.Module):
 # functional api
 
 
-def homography_warp(patch_src: torch.Tensor,
-                    dst_homo_src: torch.Tensor,
-                    dsize: Tuple[int, int],
-                    mode: str = 'bilinear',
-                    padding_mode: str = 'zeros') -> torch.Tensor:
+def homography_warp(patch_src,
+                    dst_homo_src,
+                    dsize,
+                    mode = 'bilinear',
+                    padding_mode = 'zeros'):
     r"""Function that warps image patchs or tensors by homographies.
 
     See :class:`~kornia.geometry.warp.HomographyWarper` for details.

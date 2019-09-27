@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from typing import Tuple
 
 import torch
@@ -34,25 +35,25 @@ class GaussianBlur2d(nn.Module):
         >>> output = gauss(input)  # 2x4x5x5
     """
 
-    def __init__(self, kernel_size: Tuple[int, int],
-                 sigma: Tuple[float, float],
-                 border_type: str = 'reflect') -> None:
+    def __init__(self, kernel_size,
+                 sigma,
+                 border_type = 'reflect'):
         super(GaussianBlur2d, self).__init__()
-        self.kernel_size: Tuple[int, int] = kernel_size
-        self.sigma: Tuple[float, float] = sigma
-        self.kernel: torch.Tensor = torch.unsqueeze(
+        self.kernel_size = kernel_size
+        self.sigma = sigma
+        self.kernel = torch.unsqueeze(
             get_gaussian_kernel2d(kernel_size, sigma), dim=0)
 
         assert border_type in ["constant", "reflect", "replicate", "circular"]
         self.border_type = border_type
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return self.__class__.__name__ +\
             '(kernel_size=' + str(self.kernel_size) + ', ' +\
             'sigma=' + str(self.sigma) + ', ' +\
             'border_type=' + self.border_type + ')'
 
-    def forward(self, x: torch.Tensor):  # type: ignore
+    def forward(self, x):  # type: ignore
         return kornia.filter2D(x, self.kernel, self.border_type)
 
 
@@ -62,10 +63,10 @@ class GaussianBlur2d(nn.Module):
 
 
 def gaussian_blur2d(
-        input: torch.Tensor,
-        kernel_size: Tuple[int, int],
-        sigma: Tuple[float, float],
-        border_type: str = 'reflect') -> torch.Tensor:
+        input,
+        kernel_size,
+        sigma,
+        border_type = 'reflect'):
     r"""Function that blurs a tensor using a Gaussian filter.
 
     See :class:`~kornia.filters.GaussianBlur` for details.

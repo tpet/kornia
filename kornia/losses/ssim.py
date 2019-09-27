@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 from typing import Tuple
 
 import torch
@@ -57,37 +59,37 @@ class SSIM(nn.Module):
 
     def __init__(
             self,
-            window_size: int,
-            reduction: str = 'none',
-            max_val: float = 1.0) -> None:
+            window_size,
+            reduction = 'none',
+            max_val = 1.0):
         super(SSIM, self).__init__()
-        self.window_size: int = window_size
-        self.max_val: float = max_val
-        self.reduction: str = reduction
+        self.window_size = window_size
+        self.max_val = max_val
+        self.reduction = reduction
 
-        self.window: torch.Tensor = get_gaussian_kernel2d(
+        self.window = get_gaussian_kernel2d(
             (window_size, window_size), (1.5, 1.5))
-        self.padding: int = self.compute_zero_padding(window_size)
+        self.padding = self.compute_zero_padding(window_size)
 
-        self.C1: float = (0.01 * self.max_val) ** 2
-        self.C2: float = (0.03 * self.max_val) ** 2
+        self.C1 = (0.01 * self.max_val) ** 2
+        self.C2 = (0.03 * self.max_val) ** 2
 
     @staticmethod
-    def compute_zero_padding(kernel_size: int) -> int:
+    def compute_zero_padding(kernel_size):
         """Computes zero padding."""
         return (kernel_size - 1) // 2
 
     def filter2D(
             self,
-            input: torch.Tensor,
-            kernel: torch.Tensor,
-            channel: int) -> torch.Tensor:
+            input,
+            kernel,
+            channel):
         return F.conv2d(input, kernel, padding=self.padding, groups=channel)
 
     def forward(  # type: ignore
             self,
-            img1: torch.Tensor,
-            img2: torch.Tensor) -> torch.Tensor:
+            img1,
+            img2):
         if not torch.is_tensor(img1):
             raise TypeError("Input img1 type is not a torch.Tensor. Got {}"
                             .format(type(img1)))
@@ -111,12 +113,12 @@ class SSIM(nn.Module):
                              .format(img1.dtype, img2.dtype))
         # prepare kernel
         b, c, h, w = img1.shape
-        tmp_kernel: torch.Tensor = self.window.to(img1.device).to(img1.dtype)
-        kernel: torch.Tensor = tmp_kernel.repeat(c, 1, 1, 1)
+        tmp_kernel = self.window.to(img1.device).to(img1.dtype)
+        kernel = tmp_kernel.repeat(c, 1, 1, 1)
 
         # compute local mean per channel
-        mu1: torch.Tensor = self.filter2D(img1, kernel, c)
-        mu2: torch.Tensor = self.filter2D(img2, kernel, c)
+        mu1 = self.filter2D(img1, kernel, c)
+        mu2 = self.filter2D(img2, kernel, c)
 
         mu1_sq = mu1.pow(2)
         mu2_sq = mu2.pow(2)
@@ -147,11 +149,11 @@ class SSIM(nn.Module):
 
 
 def ssim(
-        img1: torch.Tensor,
-        img2: torch.Tensor,
-        window_size: int,
-        reduction: str = 'none',
-        max_val: float = 1.0) -> torch.Tensor:
+        img1,
+        img2,
+        window_size,
+        reduction = 'none',
+        max_val = 1.0):
     r"""Function that measures the Structural Similarity (SSIM) index between
     each element in the input `x` and target `y`.
 

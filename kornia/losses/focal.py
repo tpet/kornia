@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
 from typing import Optional
 
 import torch
@@ -11,7 +13,7 @@ from kornia.utils import one_hot
 # https://github.com/zhezh/focalloss/blob/master/focalloss.py
 
 class FocalLoss(nn.Module):
-    r"""Criterion that computes Focal loss.
+    ur"""Criterion that computes Focal loss.
 
     According to [1], the Focal loss is computed as follows:
 
@@ -49,18 +51,18 @@ class FocalLoss(nn.Module):
         [1] https://arxiv.org/abs/1708.02002
     """
 
-    def __init__(self, alpha: float, gamma: Optional[float] = 2.0,
-                 reduction: Optional[str] = 'none') -> None:
+    def __init__(self, alpha, gamma = 2.0,
+                 reduction = 'none'):
         super(FocalLoss, self).__init__()
-        self.alpha: float = alpha
-        self.gamma: torch.Tensor = torch.tensor(gamma)
-        self.reduction: Optional[str] = reduction
-        self.eps: float = 1e-6
+        self.alpha = alpha
+        self.gamma = torch.tensor(gamma)
+        self.reduction = reduction
+        self.eps = 1e-6
 
     def forward(  # type: ignore
             self,
-            input: torch.Tensor,
-            target: torch.Tensor) -> torch.Tensor:
+            input,
+            target):
         if not torch.is_tensor(input):
             raise TypeError("Input type is not a torch.Tensor. Got {}"
                             .format(type(input)))
@@ -105,11 +107,11 @@ class FocalLoss(nn.Module):
 
 
 def focal_loss(
-        input: torch.Tensor,
-        target: torch.Tensor,
-        alpha: float,
-        gamma: Optional[float] = 2.0,
-        reduction: Optional[str] = 'none') -> torch.Tensor:
+        input,
+        target,
+        alpha,
+        gamma = 2.0,
+        reduction = 'none'):
     r"""Function that computes Focal loss.
 
     See :class:`~kornia.losses.FocalLoss` for details.

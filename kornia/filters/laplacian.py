@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from typing import Tuple
 
 import torch
@@ -36,24 +37,24 @@ class Laplacian(nn.Module):
     """
 
     def __init__(self,
-                 kernel_size: int, border_type: str = 'reflect',
-                 normalized: bool = True) -> None:
+                 kernel_size, border_type = 'reflect',
+                 normalized = True):
         super(Laplacian, self).__init__()
-        self.kernel_size: int = kernel_size
-        self.border_type: str = border_type
-        self.normalized: bool = normalized
-        self.kernel: torch.Tensor = torch.unsqueeze(
+        self.kernel_size = kernel_size
+        self.border_type = border_type
+        self.normalized = normalized
+        self.kernel = torch.unsqueeze(
             get_laplacian_kernel2d(kernel_size), dim=0)
         if self.normalized:
             self.kernel = normalize_kernel2d(self.kernel)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return self.__class__.__name__ +\
             '(kernel_size=' + str(self.kernel_size) + ', ' +\
             'normalized=' + str(self.normalized) + ', ' + \
             'border_type=' + self.border_type + ')'
 
-    def forward(self, input: torch.Tensor):  # type: ignore
+    def forward(self, input):  # type: ignore
         return kornia.filter2D(input, self.kernel, self.border_type)
 
 
@@ -63,10 +64,10 @@ class Laplacian(nn.Module):
 
 
 def laplacian(
-        input: torch.Tensor,
-        kernel_size: int,
-        border_type: str = 'reflect',
-        normalized: bool = True) -> torch.Tensor:
+        input,
+        kernel_size,
+        border_type = 'reflect',
+        normalized = True):
     r"""Function that returns a tensor using a Laplacian filter.
 
     See :class:`~kornia.filters.Laplacian` for details.

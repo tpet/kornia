@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import division
+from __future__ import absolute_import
 from typing import Tuple, Optional
 
 import torch
@@ -110,12 +113,11 @@ def warp_perspective(src, M, dsize, flags='bilinear', border_mode=None,
     return transform_warp_impl(src, M, (src.shape[-2:]), dsize)
 
 
-def warp_affine(src: torch.Tensor,
-                M: torch.Tensor,
-                dsize: Tuple[int,
-                             int],
-                flags: Optional[str] = 'bilinear',
-                padding_mode: Optional[str] = 'zeros') -> torch.Tensor:
+def warp_affine(src,
+                M,
+                dsize,
+                flags = 'bilinear',
+                padding_mode = 'zeros'):
     r"""Applies an affine transformation to a tensor.
 
     The function warp_affine transforms the source tensor using
@@ -157,7 +159,7 @@ def warp_affine(src: torch.Tensor,
         raise ValueError("Input M must be a Bx2x3 tensor. Got {}"
                          .format(src.shape))
     # we generate a 3x3 transformation matrix from 2x3 affine
-    M_3x3: torch.Tensor = F.pad(M, [0, 0, 0, 1, 0, 0],
+    M_3x3 = F.pad(M, [0, 0, 0, 1, 0, 0],
                                 mode="constant", value=0)
     M_3x3[:, 2, 2] += 1.0
 
@@ -270,7 +272,7 @@ def get_perspective_transform(src, dst):
     return M.view(-1, 3, 3)  # Bx3x3
 
 
-def angle_to_rotation_matrix(angle: torch.Tensor) -> torch.Tensor:
+def angle_to_rotation_matrix(angle):
     """
     Creates a rotation matrix out of angles in degrees
     Args:
@@ -288,15 +290,15 @@ def angle_to_rotation_matrix(angle: torch.Tensor) -> torch.Tensor:
         >>> output = kornia.angle_to_rotation_matrix(input)  # Nx3x2x2
     """
     ang_rad = kornia.deg2rad(angle)
-    cos_a: torch.Tensor = torch.cos(ang_rad)
-    sin_a: torch.Tensor = torch.sin(ang_rad)
-    return torch.stack([cos_a, sin_a, -sin_a, cos_a], dim=-1).view(*angle.shape, 2, 2)
+    cos_a = torch.cos(ang_rad)
+    sin_a = torch.sin(ang_rad)
+    return torch.stack([cos_a, sin_a, -sin_a, cos_a], dim=-1).view(*(angle.shape + (2, 2)))
 
 
 def get_rotation_matrix2d(
-        center: torch.Tensor,
-        angle: torch.Tensor,
-        scale: torch.Tensor) -> torch.Tensor:
+        center,
+        angle,
+        scale):
     r"""Calculates an affine matrix of 2D rotation.
 
     The function calculates the following matrix:
@@ -362,17 +364,17 @@ def get_rotation_matrix2d(
         raise ValueError("Inputs must have same batch size dimension. Got {}"
                          .format(center.shape, angle.shape, scale.shape))
     # convert angle and apply scale
-    scaled_rotation: torch.Tensor = angle_to_rotation_matrix(angle) * scale.view(-1, 1, 1)
-    alpha: torch.Tensor = scaled_rotation[:, 0, 0]
-    beta: torch.Tensor = scaled_rotation[:, 0, 1]
+    scaled_rotation = angle_to_rotation_matrix(angle) * scale.view(-1, 1, 1)
+    alpha = scaled_rotation[:, 0, 0]
+    beta = scaled_rotation[:, 0, 1]
 
     # unpack the center to x, y coordinates
-    x: torch.Tensor = center[..., 0]
-    y: torch.Tensor = center[..., 1]
+    x = center[..., 0]
+    y = center[..., 1]
 
     # create output tensor
-    batch_size: int = center.shape[0]
-    M: torch.Tensor = torch.zeros(
+    batch_size = center.shape[0]
+    M = torch.zeros(
         batch_size, 2, 3, device=center.device, dtype=center.dtype)
     M[..., 0:2, 0:2] = scaled_rotation
     M[..., 0, 2] = (torch.tensor(1.) - alpha) * x - beta * y
@@ -380,8 +382,8 @@ def get_rotation_matrix2d(
     return M
 
 
-def remap(tensor: torch.Tensor, map_x: torch.Tensor,
-          map_y: torch.Tensor) -> torch.Tensor:
+def remap(tensor, map_x,
+          map_y):
     r"""Applies a generic geometrical transformation to a tensor.
 
     The function remap transforms the source tensor using the specified map:
@@ -424,20 +426,20 @@ def remap(tensor: torch.Tensor, map_x: torch.Tensor,
     batch_size, _, height, width = tensor.shape
 
     # grid_sample need the grid between -1/1
-    map_xy: torch.Tensor = torch.stack([map_x, map_y], dim=-1)
-    map_xy_norm: torch.Tensor = normalize_pixel_coordinates(
+    map_xy = torch.stack([map_x, map_y], dim=-1)
+    map_xy_norm = normalize_pixel_coordinates(
         map_xy, height, width)
 
     # simulate broadcasting since grid_sample does not support it
     map_xy_norm = map_xy_norm.expand(batch_size, -1, -1, -1)
 
     # warp ans return
-    tensor_warped: torch.Tensor = F.grid_sample(tensor, map_xy_norm)
+    tensor_warped = F.grid_sample(tensor, map_xy_norm)
     return tensor_warped
 
 
-def invert_affine_transform(matrix: torch.Tensor) -> torch.Tensor:
-    r"""Inverts an affine transformation.
+def invert_affine_transform(matrix):
+    ur"""Inverts an affine transformation.
 
     The function computes an inverse affine transformation represented by
     2×3 matrix:
@@ -463,8 +465,8 @@ def invert_affine_transform(matrix: torch.Tensor) -> torch.Tensor:
     if not (len(matrix.shape) == 3 or matrix.shape[-2:] == (2, 3)):
         raise ValueError("Input matrix must be a Bx2x3 tensor. Got {}"
                          .format(matrix.shape))
-    matrix_tmp: torch.Tensor = F.pad(matrix, [0, 0, 0, 1], "constant", 0.0)
+    matrix_tmp = F.pad(matrix, [0, 0, 0, 1], "constant", 0.0)
     matrix_tmp[..., 2, 2] += 1.0
 
-    matrix_inv: torch.Tensor = torch.inverse(matrix_tmp)
+    matrix_inv = torch.inverse(matrix_tmp)
     return matrix_inv[..., :2, :3]
